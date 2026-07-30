@@ -27,16 +27,16 @@
     </p>
   } @else if (climaState.clima.value(); as clima) {
     <div class="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-      <div class="flex items-center justify-between">
-        <div>
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
-            <h2 class="text-xl font-semibold text-slate-900">
+            <h2 class="truncate text-xl font-semibold text-slate-900">
               {{ clima.cidade }}, {{ clima.paisCodigo }}
             </h2>
             @if (auth.estaAutenticado()) {
               <button
                 type="button"
-                class="text-xl leading-none"
+                class="shrink-0 text-xl leading-none"
                 [attr.aria-label]="
                   favoritesState.obterFavorito(clima.cidade)
                     ? 'Remover ' + clima.cidade + ' dos favoritos'
@@ -50,7 +50,9 @@
           </div>
           <p class="text-sm capitalize text-slate-500">{{ clima.condicao }}</p>
         </div>
-        <app-weather-icon [url]="clima.iconeUrl" [alt]="clima.condicao" [size]="72" />
+        <div class="shrink-0">
+          <app-weather-icon [url]="clima.iconeUrl" [alt]="clima.condicao" [size]="72" />
+        </div>
       </div>
 
       <div class="mt-2 flex items-end gap-4">
