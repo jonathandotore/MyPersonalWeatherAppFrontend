@@ -29,9 +29,25 @@
     <div class="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-xl font-semibold text-slate-900">
-            {{ clima.cidade }}, {{ clima.paisCodigo }}
-          </h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-semibold text-slate-900">
+              {{ clima.cidade }}, {{ clima.paisCodigo }}
+            </h2>
+            @if (auth.estaAutenticado()) {
+              <button
+                type="button"
+                class="text-xl leading-none"
+                [attr.aria-label]="
+                  favoritesState.obterFavorito(clima.cidade)
+                    ? 'Remover ' + clima.cidade + ' dos favoritos'
+                    : 'Adicionar ' + clima.cidade + ' aos favoritos'
+                "
+                (click)="toggleFavorito(clima)"
+              >
+                {{ favoritesState.obterFavorito(clima.cidade) ? '⭐' : '☆' }}
+              </button>
+            }
+          </div>
           <p class="text-sm capitalize text-slate-500">{{ clima.condicao }}</p>
         </div>
         <app-weather-icon [url]="clima.iconeUrl" [alt]="clima.condicao" [size]="72" />

@@ -1,0 +1,37 @@
+@if (auth.estaAutenticado()) {
+  <section class="mt-6">
+    <h3 class="mb-3 text-sm font-semibold text-slate-600">Favoritos</h3>
+
+    @if (state.carregando()) {
+      <app-loading-spinner label="Carregando favoritos..." />
+    } @else if (state.erro()) {
+      <p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+        {{ state.erro() }}
+      </p>
+    } @else if (state.favoritos().length === 0) {
+      <p class="text-sm text-slate-400">Nenhuma cidade favoritada ainda.</p>
+    } @else {
+      <ul class="flex flex-wrap gap-2">
+        @for (favorito of state.favoritos(); track favorito.id) {
+          <li class="flex items-center gap-1 rounded-full bg-white py-1 pr-1 pl-3 text-sm shadow-sm ring-1 ring-slate-100">
+            <button
+              type="button"
+              class="text-slate-700 hover:text-sky-600"
+              (click)="pesquisar(favorito.nome)"
+            >
+              {{ favorito.nome }}{{ favorito.paisCodigo ? ', ' + favorito.paisCodigo : '' }}
+            </button>
+            <button
+              type="button"
+              class="rounded-full px-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+              [attr.aria-label]="'Remover ' + favorito.nome + ' dos favoritos'"
+              (click)="remover(favorito.id)"
+            >
+              ×
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

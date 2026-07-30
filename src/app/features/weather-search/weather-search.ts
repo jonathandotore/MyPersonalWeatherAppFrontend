@@ -3,9 +3,12 @@ import { DecimalPipe } from '@angular/common';
 
 import { WeatherSearchState } from './weather-search.state';
 import { CidadePesquisada } from '../../shared/state/cidade-pesquisada';
+import { AuthState } from '../../shared/state/auth';
+import { FavoritesState } from '../favorites/favorites.state';
 import { WeatherIcon } from '../../shared/ui/weather-icon/weather-icon';
 import { LoadingSpinner } from '../../shared/ui/loading-spinner/loading-spinner';
 import { extrairMensagemDeErro } from '../../shared/utils/http-error.util';
+import type { ClimaAtual } from '../../shared/models/clima.model';
 
 @Component({
   selector: 'app-weather-search',
@@ -15,6 +18,8 @@ import { extrairMensagemDeErro } from '../../shared/utils/http-error.util';
 export class WeatherSearch {
   protected readonly busca = inject(CidadePesquisada);
   protected readonly climaState = inject(WeatherSearchState);
+  protected readonly auth = inject(AuthState);
+  protected readonly favoritesState = inject(FavoritesState);
 
   protected readonly mensagemDeErro = computed(() =>
     extrairMensagemDeErro(this.climaState.clima.error()),
@@ -28,5 +33,14 @@ export class WeatherSearch {
   protected onSubmit(event: Event): void {
     event.preventDefault();
     this.busca.buscarAgora();
+  }
+
+  protected toggleFavorito(clima: ClimaAtual): void {
+    const favorito = this.favoritesState.obterFavorito(clima.cidade);
+    if (favorito) {
+      void this.favoritesState.remover(favorito.id);
+    } else {
+      void this.favoritesState.adicionar(clima.cidade, clima.paisCodigo);
+    }
   }
 }
