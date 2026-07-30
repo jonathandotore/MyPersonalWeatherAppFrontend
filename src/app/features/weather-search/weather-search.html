@@ -7,25 +7,25 @@
       autocomplete="off"
       placeholder="Buscar cidade... (ex.: São Paulo,BR)"
       class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
-      [value]="state.termo()"
+      [value]="busca.termo()"
       (input)="onInput($event)"
     />
     <button
       type="submit"
       class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
-      [disabled]="state.clima.isLoading()"
+      [disabled]="climaState.clima.isLoading()"
     >
       Buscar
     </button>
   </form>
 
-  @if (state.clima.isLoading()) {
+  @if (climaState.clima.isLoading()) {
     <app-loading-spinner label="Buscando clima..." />
-  } @else if (state.clima.error()) {
+  } @else if (climaState.clima.error()) {
     <p class="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
       {{ mensagemDeErro() }}
     </p>
-  } @else if (state.clima.value(); as clima) {
+  } @else if (climaState.clima.value(); as clima) {
     <div class="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
       <div class="flex items-center justify-between">
         <div>

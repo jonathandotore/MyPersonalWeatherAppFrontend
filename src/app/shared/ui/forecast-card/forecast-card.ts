@@ -1,0 +1,27 @@
+import { Component, computed, input } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+
+import { WeatherIcon } from '../weather-icon/weather-icon';
+import { parseDataLocal } from '../../utils/data-local.util';
+import type { PrevisaoDiaria } from '../../models/previsao.model';
+
+@Component({
+  selector: 'app-forecast-card',
+  imports: [DatePipe, DecimalPipe, WeatherIcon],
+  template: `
+    <div class="flex flex-col items-center gap-1 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100">
+      <span class="text-sm font-medium text-slate-600 capitalize">{{ data() | date: 'EEE, dd/MM' }}</span>
+      <app-weather-icon [url]="dia().iconeUrl" [alt]="dia().condicao" [size]="48" />
+      <span class="text-xs text-slate-500 capitalize">{{ dia().condicao }}</span>
+      <div class="flex items-baseline gap-1 text-sm">
+        <span class="font-semibold text-slate-900">{{ dia().temperaturaMaxima | number: '1.0-1' }}°</span>
+        <span class="text-slate-400">{{ dia().temperaturaMinima | number: '1.0-1' }}°</span>
+      </div>
+    </div>
+  `,
+})
+export class ForecastCard {
+  readonly dia = input.required<PrevisaoDiaria>();
+
+  protected readonly data = computed(() => parseDataLocal(this.dia().data));
+}
