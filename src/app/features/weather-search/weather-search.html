@@ -1,0 +1,75 @@
+<section class="mx-auto max-w-xl">
+  <form class="flex gap-2" (submit)="onSubmit($event)">
+    <label for="cidade" class="sr-only">Cidade</label>
+    <input
+      id="cidade"
+      type="text"
+      autocomplete="off"
+      placeholder="Buscar cidade... (ex.: São Paulo,BR)"
+      class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
+      [value]="state.termo()"
+      (input)="onInput($event)"
+    />
+    <button
+      type="submit"
+      class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="state.clima.isLoading()"
+    >
+      Buscar
+    </button>
+  </form>
+
+  @if (state.clima.isLoading()) {
+    <app-loading-spinner label="Buscando clima..." />
+  } @else if (state.clima.error()) {
+    <p class="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ mensagemDeErro() }}
+    </p>
+  } @else if (state.clima.value(); as clima) {
+    <div class="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900">
+            {{ clima.cidade }}, {{ clima.paisCodigo }}
+          </h2>
+          <p class="text-sm capitalize text-slate-500">{{ clima.condicao }}</p>
+        </div>
+        <app-weather-icon [url]="clima.iconeUrl" [alt]="clima.condicao" [size]="72" />
+      </div>
+
+      <div class="mt-2 flex items-end gap-4">
+        <span class="text-4xl font-bold text-slate-900">
+          {{ clima.temperatura | number: '1.0-1' }}°C
+        </span>
+        <span class="pb-1 text-sm text-slate-500">
+          Sensação {{ clima.sensacaoTermica | number: '1.0-1' }}°C
+        </span>
+      </div>
+
+      <dl class="mt-4 grid grid-cols-3 gap-3 rounded-lg bg-slate-50 py-3 text-center text-sm">
+        <div>
+          <dt class="text-slate-400">Máxima</dt>
+          <dd class="font-medium text-slate-700">{{ clima.temperaturaMaxima | number: '1.0-1' }}°C</dd>
+        </div>
+        <div>
+          <dt class="text-slate-400">Mínima</dt>
+          <dd class="font-medium text-slate-700">{{ clima.temperaturaMinima | number: '1.0-1' }}°C</dd>
+        </div>
+        <div>
+          <dt class="text-slate-400">Umidade</dt>
+          <dd class="font-medium text-slate-700">{{ clima.umidade }}%</dd>
+        </div>
+      </dl>
+
+      @if (clima.fonteMaxMin === 'leitura-atual') {
+        <p class="mt-3 text-xs text-amber-600">
+          ⚠️ Máx/mín aproximadas a partir da leitura atual — previsão indisponível no momento.
+        </p>
+      }
+    </div>
+  } @else {
+    <p class="mt-6 text-center text-sm text-slate-400">
+      Busque uma cidade para ver o clima atual.
+    </p>
+  }
+</section>
