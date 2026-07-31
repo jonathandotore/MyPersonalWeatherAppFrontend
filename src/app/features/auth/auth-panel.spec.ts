@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { AuthPanel } from './auth-panel';
+import { AuthState } from '../../shared/state/auth';
 import { API_BASE_URL } from '../../core/config/api-config';
 import type { AuthResponse } from '../../shared/models/auth.model';
 
@@ -31,7 +32,7 @@ describe('AuthPanel', () => {
     expect(fixture.nativeElement.querySelector('input[type="text"]')).toBeFalsy();
   });
 
-  it('faz login e passa a mostrar o e-mail autenticado', async () => {
+  it('faz login e limpa o formulário', async () => {
     const fixture = TestBed.createComponent(AuthPanel);
     fixture.detectChanges();
 
@@ -54,7 +55,11 @@ describe('AuthPanel', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('maria@teste.com');
-    expect(fixture.nativeElement.querySelector('form')).toBeFalsy();
+    const auth = TestBed.inject(AuthState);
+    expect(auth.estaAutenticado()).toBe(true);
+    expect(auth.emailLogado()).toBe('maria@teste.com');
+    expect(
+      (fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement).value,
+    ).toBe('');
   });
 });

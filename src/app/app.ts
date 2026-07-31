@@ -2,12 +2,13 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { WeatherSearch } from './features/weather-search/weather-search';
 import { ForecastList } from './features/forecast/forecast-list';
-import { AuthPanel } from './features/auth/auth-panel';
+import { AuthStatus } from './features/auth/auth-status';
+import { AuthOverlay } from './features/auth/auth-overlay';
 import { FavoritesPanel } from './features/favorites/favorites-panel';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, WeatherSearch, ForecastList, AuthPanel, FavoritesPanel],
+  imports: [RouterOutlet, WeatherSearch, ForecastList, AuthStatus, AuthOverlay, FavoritesPanel],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

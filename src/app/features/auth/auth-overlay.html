@@ -1,0 +1,24 @@
+@if (auth.painelAberto()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Login necessário para favoritar"
+    (click)="fechar()"
+  >
+    <div class="relative w-full max-w-sm" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="absolute -top-3 -right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg text-slate-500 shadow-md hover:text-slate-700"
+        aria-label="Fechar e continuar sem favoritar"
+        (click)="fechar()"
+      >
+        ✕
+      </button>
+      <p class="mb-2 text-center text-sm text-white">
+        Entre para adicionar cidades aos favoritos.
+      </p>
+      <app-auth-panel />
+    </div>
+  </div>
+}

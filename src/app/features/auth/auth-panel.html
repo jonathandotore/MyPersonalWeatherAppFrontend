@@ -1,83 +1,68 @@
-@if (auth.estaAutenticado()) {
-  <div class="flex items-center justify-between gap-2 rounded-lg bg-white px-4 py-2 text-sm shadow-sm ring-1 ring-slate-100">
-    <span class="min-w-0 truncate text-slate-600">
-      Logado como <strong class="text-slate-900">{{ auth.emailLogado() }}</strong>
-    </span>
+<div class="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-100">
+  <div class="mb-3 flex gap-4 text-sm font-medium">
     <button
       type="button"
-      class="shrink-0 font-medium text-sky-600 hover:underline"
-      (click)="auth.logout()"
+      class="pb-1"
+      [class.text-sky-600]="modo() === 'login'"
+      [class.border-b-2]="modo() === 'login'"
+      [class.border-sky-600]="modo() === 'login'"
+      [class.text-slate-400]="modo() !== 'login'"
+      (click)="trocarModo('login')"
     >
-      Sair
+      Entrar
+    </button>
+    <button
+      type="button"
+      class="pb-1"
+      [class.text-sky-600]="modo() === 'registro'"
+      [class.border-b-2]="modo() === 'registro'"
+      [class.border-sky-600]="modo() === 'registro'"
+      [class.text-slate-400]="modo() !== 'registro'"
+      (click)="trocarModo('registro')"
+    >
+      Criar conta
     </button>
   </div>
-} @else {
-  <div class="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-100">
-    <div class="mb-3 flex gap-4 text-sm font-medium">
-      <button
-        type="button"
-        class="pb-1"
-        [class.text-sky-600]="modo() === 'login'"
-        [class.border-b-2]="modo() === 'login'"
-        [class.border-sky-600]="modo() === 'login'"
-        [class.text-slate-400]="modo() !== 'login'"
-        (click)="trocarModo('login')"
-      >
-        Entrar
-      </button>
-      <button
-        type="button"
-        class="pb-1"
-        [class.text-sky-600]="modo() === 'registro'"
-        [class.border-b-2]="modo() === 'registro'"
-        [class.border-sky-600]="modo() === 'registro'"
-        [class.text-slate-400]="modo() !== 'registro'"
-        (click)="trocarModo('registro')"
-      >
-        Criar conta
-      </button>
-    </div>
 
-    <form class="flex flex-col gap-2" (submit)="onSubmit($event)">
-      @if (modo() === 'registro') {
-        <input
-          type="text"
-          placeholder="Nome"
-          required
-          class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
-          [value]="nome()"
-          (input)="onNomeInput($event)"
-        />
-      }
+  <form class="flex flex-col gap-2" (submit)="onSubmit($event)">
+    @if (modo() === 'registro') {
       <input
-        type="email"
-        placeholder="E-mail"
+        type="text"
+        placeholder="Nome"
         required
         class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
-        [value]="email()"
-        (input)="onEmailInput($event)"
+        [value]="nome()"
+        (input)="onNomeInput($event)"
       />
-      <input
-        type="password"
-        placeholder="Senha"
-        required
-        minlength="8"
-        class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
-        [value]="senha()"
-        (input)="onSenhaInput($event)"
-      />
+    }
+    <input
+      type="email"
+      placeholder="E-mail"
+      required
+      class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
+      [value]="email()"
+      (input)="onEmailInput($event)"
+    />
+    <input
+      type="password"
+      placeholder="Senha"
+      required
+      minlength="8"
+      class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-200 focus:outline-none"
+      [value]="senha()"
+      (input)="onSenhaInput($event)"
+    />
 
-      @if (auth.erro()) {
-        <p class="text-xs text-red-600" role="alert">{{ auth.erro() }}</p>
-      }
+    @if (auth.erro()) {
+      <p class="text-xs text-red-600" role="alert">{{ auth.erro() }}</p>
+    }
 
-      <button
-        type="submit"
-        class="mt-1 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
-        [disabled]="auth.carregando()"
-      >
-        {{ modo() === 'login' ? 'Entrar' : 'Criar conta' }}
-      </button>
-    </form>
-  </div>
-}
+    <button
+      type="submit"
+      class="mt-1 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="auth.carregando()"
+    >
+      {{ modo() === 'login' ? 'Entrar' : 'Criar conta' }}
+    </button>
+  </form>
+</div>

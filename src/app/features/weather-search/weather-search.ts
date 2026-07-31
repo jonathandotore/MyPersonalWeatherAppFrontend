@@ -36,6 +36,11 @@ export class WeatherSearch {
   }
 
   protected toggleFavorito(clima: ClimaAtual): void {
+    if (!this.auth.estaAutenticado()) {
+      this.auth.abrirPainel();
+      return;
+    }
+
     const favorito = this.favoritesState.obterFavorito(clima.cidade);
     if (favorito) {
       this.favoritesState.remover(favorito.id).subscribe();

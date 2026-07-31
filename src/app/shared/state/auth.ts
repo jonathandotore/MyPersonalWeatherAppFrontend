@@ -1,4 +1,4 @@
-import { Service, computed, inject, signal } from '@angular/core';
+import { Service, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 
@@ -25,8 +25,28 @@ export class AuthState {
   readonly carregando = signal(false);
   readonly erro = signal<string | null>(null);
 
+  /** Painel de login/registro fica oculto até algo pedir autenticação (ex.: favoritar uma cidade). */
+  private readonly _painelAberto = signal(false);
+  readonly painelAberto = this._painelAberto.asReadonly();
+
+  constructor() {
+    effect(() => {
+      if (this.estaAutenticado()) {
+        this._painelAberto.set(false);
+      }
+    });
+  }
+
   obterToken(): string | null {
     return this.token();
+  }
+
+  abrirPainel(): void {
+    this._painelAberto.set(true);
+  }
+
+  fecharPainel(): void {
+    this._painelAberto.set(false);
   }
 
   login(email: string, senha: string): Observable<boolean> {

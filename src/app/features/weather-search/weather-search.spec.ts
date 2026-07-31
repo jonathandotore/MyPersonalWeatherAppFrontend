@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { WeatherSearch } from './weather-search';
+import { AuthState } from '../../shared/state/auth';
 import { API_BASE_URL } from '../../core/config/api-config';
 import type { ClimaAtual } from '../../shared/models/clima.model';
 
@@ -95,5 +96,43 @@ describe('WeatherSearch', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Não foi encontrada nenhuma cidade');
+  });
+
+  it('clicar no coração sem estar autenticado abre o painel de login em vez de favoritar', async () => {
+    const fixture = TestBed.createComponent(WeatherSearch);
+    fixture.detectChanges();
+
+    buscar(fixture, 'Curitiba');
+    const req = httpMock.expectOne('https://api.test/api/clima/Curitiba');
+    const climaMock: ClimaAtual = {
+      cidade: 'Curitiba',
+      paisCodigo: 'BR',
+      temperatura: 21.6,
+      sensacaoTermica: 21.6,
+      temperaturaMaxima: 21.64,
+      temperaturaMinima: 11.02,
+      umidade: 55,
+      condicao: 'nublado',
+      icone: '04d',
+      iconeUrl: 'https://openweathermap.org/img/wn/04d@2x.png',
+      latitude: -25.43,
+      longitude: -49.27,
+      dataHoraLocal: '2026-07-30T09:45:55-03:00',
+      fonteMaxMin: 'previsao',
+    };
+    req.flush(climaMock);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const auth = TestBed.inject(AuthState);
+    expect(auth.painelAberto()).toBe(false);
+
+    const coracaoBtn: HTMLButtonElement = fixture.nativeElement.querySelector(
+      'button[aria-label^="Adicionar"]',
+    );
+    coracaoBtn.click();
+
+    expect(auth.painelAberto()).toBe(true);
+    httpMock.expectNone('https://api.test/api/favoritos');
   });
 });
