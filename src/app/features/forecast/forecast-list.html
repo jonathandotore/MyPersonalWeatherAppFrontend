@@ -7,7 +7,7 @@
 } @else if (state.previsao.value(); as previsao) {
   <section class="mt-6">
     <h3 class="mb-3 text-sm font-semibold text-slate-600">Previsão para os próximos 5 dias</h3>
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5">
       @for (dia of previsao.dias; track dia.data) {
         <app-forecast-card [dia]="dia" />
       }

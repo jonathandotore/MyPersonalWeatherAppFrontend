@@ -1,0 +1,13 @@
+.min-width-warning {
+  display: none;
+}
+
+@media (max-width: 319px) {
+  .min-width-warning {
+    display: flex;
+  }
+
+  .app-shell {
+    display: none;
+  }
+}
