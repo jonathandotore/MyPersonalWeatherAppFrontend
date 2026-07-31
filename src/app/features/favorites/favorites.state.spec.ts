@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { firstValueFrom } from 'rxjs';
 
 import { FavoritesState } from './favorites.state';
 import { AuthState } from '../../shared/state/auth';
@@ -31,7 +32,7 @@ describe('FavoritesState', () => {
 
   async function autenticar(): Promise<void> {
     const auth = TestBed.inject(AuthState);
-    const promise = auth.login('maria@teste.com', 'SenhaForte123');
+    const promise = firstValueFrom(auth.login('maria@teste.com', 'SenhaForte123'));
     httpMock
       .expectOne('https://api.test/api/auth/login')
       .flush({ token: 'jwt', expiraEmUtc: '' } satisfies AuthResponse);
@@ -83,14 +84,14 @@ describe('FavoritesState', () => {
       dataCriacao: '2026-07-30T00:00:00Z',
     };
 
-    const addPromise = state.adicionar('Fortaleza', 'BR');
+    const addPromise = firstValueFrom(state.adicionar('Fortaleza', 'BR'));
     const addReq = httpMock.expectOne('https://api.test/api/favoritos');
     expect(addReq.request.method).toBe('POST');
     addReq.flush(novo);
     expect(await addPromise).toBe(true);
     expect(state.favoritos()).toEqual([novo]);
 
-    const removePromise = state.remover('1');
+    const removePromise = firstValueFrom(state.remover('1'));
     const removeReq = httpMock.expectOne('https://api.test/api/favoritos/1');
     expect(removeReq.request.method).toBe('DELETE');
     removeReq.flush(null);

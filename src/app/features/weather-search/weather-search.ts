@@ -38,9 +38,9 @@ export class WeatherSearch {
   protected toggleFavorito(clima: ClimaAtual): void {
     const favorito = this.favoritesState.obterFavorito(clima.cidade);
     if (favorito) {
-      void this.favoritesState.remover(favorito.id);
+      this.favoritesState.remover(favorito.id).subscribe();
     } else {
-      void this.favoritesState.adicionar(clima.cidade, clima.paisCodigo);
+      this.favoritesState.adicionar(clima.cidade, clima.paisCodigo).subscribe();
     }
   }
 }

@@ -34,18 +34,20 @@ export class AuthPanel {
     this.senha.set((event.target as HTMLInputElement).value);
   }
 
-  protected async onSubmit(event: Event): Promise<void> {
+  protected onSubmit(event: Event): void {
     event.preventDefault();
 
-    const sucesso =
+    const resultado$ =
       this.modo() === 'login'
-        ? await this.auth.login(this.email(), this.senha())
-        : await this.auth.registrar(this.nome(), this.email(), this.senha());
+        ? this.auth.login(this.email(), this.senha())
+        : this.auth.registrar(this.nome(), this.email(), this.senha());
 
-    if (sucesso) {
-      this.nome.set('');
-      this.email.set('');
-      this.senha.set('');
-    }
+    resultado$.subscribe((sucesso) => {
+      if (sucesso) {
+        this.nome.set('');
+        this.email.set('');
+        this.senha.set('');
+      }
+    });
   }
 }

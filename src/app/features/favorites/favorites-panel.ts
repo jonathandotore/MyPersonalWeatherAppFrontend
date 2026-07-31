@@ -21,6 +21,6 @@ export class FavoritesPanel {
   }
 
   protected remover(id: string): void {
-    void this.state.remover(id);
+    this.state.remover(id).subscribe();
   }
 }

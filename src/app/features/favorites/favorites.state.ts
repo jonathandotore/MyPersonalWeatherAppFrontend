@@ -1,6 +1,6 @@
 import { Service, effect, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 
 import { API_BASE_URL } from '../../core/config/api-config';
 import { apiEndpoints } from '../../core/config/api-endpoints';
@@ -29,7 +29,7 @@ export class FavoritesState {
   constructor() {
     effect(() => {
       if (this.auth.estaAutenticado()) {
-        this.recarregar();
+        this.recarregar().subscribe();
       } else {
         this._favoritos.set([]);
         this.storage.limpar();
@@ -42,47 +42,52 @@ export class FavoritesState {
     return this._favoritos().find((favorito) => normalizarNome(favorito.nome) === alvo);
   }
 
-  async recarregar(): Promise<void> {
+  recarregar(): Observable<Favorito[]> {
     this.carregando.set(true);
     this.erro.set(null);
-    try {
-      const favoritos = await firstValueFrom(
-        this.http.get<Favorito[]>(`${this.baseUrl}${apiEndpoints.favoritos}`),
-      );
-      this._favoritos.set(favoritos);
-      this.storage.salvar(favoritos);
-    } catch (erro) {
-      this.erro.set(extrairMensagemDeErro(erro));
-    } finally {
-      this.carregando.set(false);
-    }
+    return this.http.get<Favorito[]>(`${this.baseUrl}${apiEndpoints.favoritos}`).pipe(
+      tap((favoritos) => {
+        this._favoritos.set(favoritos);
+        this.storage.salvar(favoritos);
+        this.carregando.set(false);
+      }),
+      catchError((erro: HttpErrorResponse) => {
+        this.erro.set(extrairMensagemDeErro(erro));
+        this.carregando.set(false);
+        return of<Favorito[]>([]);
+      }),
+    );
   }
 
-  async adicionar(nome: string, paisCodigo?: string): Promise<boolean> {
+  adicionar(nome: string, paisCodigo?: string): Observable<boolean> {
     this.erro.set(null);
-    try {
-      const novoFavorito = await firstValueFrom(
-        this.http.post<Favorito>(`${this.baseUrl}${apiEndpoints.favoritos}`, { nome, paisCodigo }),
+    return this.http
+      .post<Favorito>(`${this.baseUrl}${apiEndpoints.favoritos}`, { nome, paisCodigo })
+      .pipe(
+        tap((novoFavorito) => {
+          this._favoritos.update((lista) => [...lista, novoFavorito]);
+          this.storage.salvar(this._favoritos());
+        }),
+        map(() => true),
+        catchError((erro: HttpErrorResponse) => {
+          this.erro.set(extrairMensagemDeErro(erro));
+          return of(false);
+        }),
       );
-      this._favoritos.update((lista) => [...lista, novoFavorito]);
-      this.storage.salvar(this._favoritos());
-      return true;
-    } catch (erro) {
-      this.erro.set(extrairMensagemDeErro(erro));
-      return false;
-    }
   }
 
-  async remover(id: string): Promise<boolean> {
+  remover(id: string): Observable<boolean> {
     this.erro.set(null);
-    try {
-      await firstValueFrom(this.http.delete<void>(`${this.baseUrl}${apiEndpoints.favorito(id)}`));
-      this._favoritos.update((lista) => lista.filter((favorito) => favorito.id !== id));
-      this.storage.salvar(this._favoritos());
-      return true;
-    } catch (erro) {
-      this.erro.set(extrairMensagemDeErro(erro));
-      return false;
-    }
+    return this.http.delete<void>(`${this.baseUrl}${apiEndpoints.favorito(id)}`).pipe(
+      tap(() => {
+        this._favoritos.update((lista) => lista.filter((favorito) => favorito.id !== id));
+        this.storage.salvar(this._favoritos());
+      }),
+      map(() => true),
+      catchError((erro: HttpErrorResponse) => {
+        this.erro.set(extrairMensagemDeErro(erro));
+        return of(false);
+      }),
+    );
   }
 }

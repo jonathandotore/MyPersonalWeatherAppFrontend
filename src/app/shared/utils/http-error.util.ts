@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import type { ProblemDetails } from '../models/problem-details.model';
 
 /**
- * Extrai uma mensagem amigável de um erro de `httpResource`/`HttpClient`.
+ * Extrai uma mensagem amigável de um erro de `HttpClient`.
  * A API sempre responde erros em ProblemDetails (RFC 9457) — ver README do backend.
  */
 export function extrairMensagemDeErro(error: unknown): string {

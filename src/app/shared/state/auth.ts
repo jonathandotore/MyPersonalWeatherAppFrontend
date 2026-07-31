@@ -1,6 +1,6 @@
 import { Service, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 
 import { API_BASE_URL } from '../../core/config/api-config';
 import { apiEndpoints } from '../../core/config/api-endpoints';
@@ -29,11 +29,11 @@ export class AuthState {
     return this.token();
   }
 
-  async login(email: string, senha: string): Promise<boolean> {
+  login(email: string, senha: string): Observable<boolean> {
     return this.autenticar(`${this.baseUrl}${apiEndpoints.login}`, { email, senha }, email);
   }
 
-  async registrar(nome: string, email: string, senha: string): Promise<boolean> {
+  registrar(nome: string, email: string, senha: string): Observable<boolean> {
     return this.autenticar(
       `${this.baseUrl}${apiEndpoints.registro}`,
       { nome, email, senha },
@@ -46,19 +46,21 @@ export class AuthState {
     this.email.set(null);
   }
 
-  private async autenticar(url: string, body: unknown, email: string): Promise<boolean> {
+  private autenticar(url: string, body: unknown, email: string): Observable<boolean> {
     this.carregando.set(true);
     this.erro.set(null);
-    try {
-      const resposta = await firstValueFrom(this.http.post<AuthResponse>(url, body));
-      this.token.set(resposta.token);
-      this.email.set(email);
-      return true;
-    } catch (erro) {
-      this.erro.set(extrairMensagemDeErro(erro));
-      return false;
-    } finally {
-      this.carregando.set(false);
-    }
+    return this.http.post<AuthResponse>(url, body).pipe(
+      tap((resposta) => {
+        this.token.set(resposta.token);
+        this.email.set(email);
+        this.carregando.set(false);
+      }),
+      map(() => true),
+      catchError((erro: HttpErrorResponse) => {
+        this.erro.set(extrairMensagemDeErro(erro));
+        this.carregando.set(false);
+        return of(false);
+      }),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { firstValueFrom } from 'rxjs';
 
 import { FavoritesPanel } from './favorites-panel';
 import { AuthState } from '../../shared/state/auth';
@@ -43,7 +44,7 @@ describe('FavoritesPanel', () => {
     fixture.detectChanges();
 
     const auth = TestBed.inject(AuthState);
-    const loginPromise = auth.login('maria@teste.com', 'SenhaForte123');
+    const loginPromise = firstValueFrom(auth.login('maria@teste.com', 'SenhaForte123'));
     httpMock
       .expectOne('https://api.test/api/auth/login')
       .flush({ token: 'jwt', expiraEmUtc: '' } satisfies AuthResponse);
