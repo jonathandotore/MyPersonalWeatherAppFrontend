@@ -6,10 +6,19 @@ import { AuthStatus } from './features/auth/auth-status';
 import { AuthOverlay } from './features/auth/auth-overlay';
 import { FavoritesPanel } from './features/favorites/favorites-panel';
 import { CidadePesquisada } from './shared/state/cidade-pesquisada';
+import { ToastContainer } from './shared/ui/toast-container/toast-container';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, WeatherSearch, ForecastList, AuthStatus, AuthOverlay, FavoritesPanel],
+  imports: [
+    RouterOutlet,
+    WeatherSearch,
+    ForecastList,
+    AuthStatus,
+    AuthOverlay,
+    FavoritesPanel,
+    ToastContainer,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

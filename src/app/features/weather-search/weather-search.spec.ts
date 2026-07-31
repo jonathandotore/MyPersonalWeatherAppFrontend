@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { WeatherSearch } from './weather-search';
 import { AuthState } from '../../shared/state/auth';
+import { NotificationsState } from '../../shared/state/notifications';
 import { API_BASE_URL } from '../../core/config/api-config';
 import type { ClimaAtual } from '../../shared/models/clima.model';
 
@@ -96,6 +97,10 @@ describe('WeatherSearch', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Não foi encontrada nenhuma cidade');
+
+    const notificacoes = TestBed.inject(NotificationsState).notificacoes();
+    expect(notificacoes.length).toBe(1);
+    expect(notificacoes[0].mensagem).toContain('Não foi encontrada nenhuma cidade');
   });
 
   it('clicar no coração sem estar autenticado abre o painel de login em vez de favoritar', async () => {

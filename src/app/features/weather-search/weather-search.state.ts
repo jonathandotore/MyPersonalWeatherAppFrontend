@@ -6,6 +6,8 @@ import { catchError, of, switchMap, tap } from 'rxjs';
 import { API_BASE_URL } from '../../core/config/api-config';
 import { apiEndpoints } from '../../core/config/api-endpoints';
 import { CidadePesquisada } from '../../shared/state/cidade-pesquisada';
+import { NotificationsState } from '../../shared/state/notifications';
+import { extrairMensagemDeErro } from '../../shared/utils/http-error.util';
 import type { ClimaAtual } from '../../shared/models/clima.model';
 
 @Service()
@@ -13,6 +15,7 @@ export class WeatherSearchState {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = inject(API_BASE_URL);
   private readonly cidadePesquisada = inject(CidadePesquisada);
+  private readonly notifications = inject(NotificationsState);
 
   private readonly climaValue = signal<ClimaAtual | undefined>(undefined);
   private readonly climaCarregando = signal(false);
@@ -49,6 +52,7 @@ export class WeatherSearchState {
               this.climaValue.set(undefined);
               this.climaErro.set(erro);
               this.climaCarregando.set(false);
+              this.notifications.notificarErro(extrairMensagemDeErro(erro));
               return of(undefined);
             }),
           );
