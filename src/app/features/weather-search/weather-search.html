@@ -28,40 +28,51 @@
       {{ mensagemDeErro() }}
     </p>
   } @else if (climaState.clima.value(); as clima) {
-    <div class="mt-4 rounded-xl bg-white p-7 shadow-sm ring-1 ring-slate-100">
-      <div class="flex items-center justify-between gap-3">
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <h2 class="truncate text-2xl font-semibold text-slate-900">
-              {{ clima.cidade }}, {{ clima.paisCodigo }}
-            </h2>
-            <button
-              type="button"
-              class="shrink-0 text-2xl leading-none"
-              [attr.aria-label]="
-                favoritesState.obterFavorito(clima.cidade)
-                  ? 'Remover ' + clima.cidade + ' dos favoritos'
-                  : 'Adicionar ' + clima.cidade + ' aos favoritos'
-              "
-              (click)="toggleFavorito(clima)"
-            >
-              {{ favoritesState.obterFavorito(clima.cidade) ? '❤️' : '🤍' }}
-            </button>
-          </div>
-          <p class="text-base capitalize text-slate-500">{{ clima.condicao }}</p>
-        </div>
-        <div class="shrink-0">
-          <app-weather-icon [url]="clima.iconeUrl" [alt]="clima.condicao" [size]="90" />
-        </div>
-      </div>
+    <div class="relative mt-4 rounded-xl bg-white p-7 shadow-sm ring-1 ring-slate-100">
+      <button
+        type="button"
+        class="absolute top-4 right-4 rounded-full p-1 transition hover:scale-110"
+        [class.text-red-500]="favoritesState.obterFavorito(clima.cidade)"
+        [class.text-slate-300]="!favoritesState.obterFavorito(clima.cidade)"
+        [attr.aria-label]="
+          favoritesState.obterFavorito(clima.cidade)
+            ? 'Remover ' + clima.cidade + ' dos favoritos'
+            : 'Adicionar ' + clima.cidade + ' aos favoritos'
+        "
+        (click)="toggleFavorito(clima)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          [attr.fill]="favoritesState.obterFavorito(clima.cidade) ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="1.8"
+          class="h-8 w-8"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+          />
+        </svg>
+      </button>
 
-      <div class="mt-2 flex items-end gap-4">
-        <span class="text-6xl font-bold text-slate-900">
-          {{ clima.temperatura | number: '1.0-1' }}°C
-        </span>
-        <span class="pb-2 text-base text-slate-500">
-          Sensação {{ clima.sensacaoTermica | number: '1.0-1' }}°C
-        </span>
+      <div class="flex flex-col items-center text-center">
+        <h2 class="max-w-full truncate text-2xl font-semibold text-slate-900">
+          {{ clima.cidade }}, {{ clima.paisCodigo }}
+        </h2>
+        <p class="text-base capitalize text-slate-500">{{ clima.condicao }}</p>
+
+        <app-weather-icon [url]="clima.iconeUrl" [alt]="clima.condicao" [size]="140" />
+
+        <div class="flex items-end gap-4">
+          <span class="text-6xl font-bold text-slate-900">
+            {{ clima.temperatura | number: '1.0-1' }}°C
+          </span>
+          <span class="pb-2 text-base text-slate-500">
+            Sensação {{ clima.sensacaoTermica | number: '1.0-1' }}°C
+          </span>
+        </div>
       </div>
 
       <dl class="mt-5 grid grid-cols-3 gap-3 rounded-lg bg-slate-50 py-5 text-center text-base">
