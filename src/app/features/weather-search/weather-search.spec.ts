@@ -5,13 +5,17 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { WeatherSearch } from './weather-search';
 import { AuthState } from '../../shared/state/auth';
 import { NotificationsState } from '../../shared/state/notifications';
+import { CidadePesquisada } from '../../shared/state/cidade-pesquisada';
 import { API_BASE_URL } from '../../core/config/api-config';
 import type { ClimaAtual } from '../../shared/models/clima.model';
 
 describe('WeatherSearch', () => {
   let httpMock: HttpTestingController;
+  let geolocationOriginal: Geolocation | undefined;
 
   beforeEach(async () => {
+    geolocationOriginal = (navigator as unknown as { geolocation?: Geolocation }).geolocation;
+
     await TestBed.configureTestingModule({
       imports: [WeatherSearch],
       providers: [
@@ -23,7 +27,10 @@ describe('WeatherSearch', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+    (navigator as unknown as { geolocation?: Geolocation }).geolocation = geolocationOriginal;
+  });
 
   function buscar(fixture: ReturnType<typeof TestBed.createComponent>, cidade: string): void {
     const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
@@ -139,5 +146,49 @@ describe('WeatherSearch', () => {
 
     expect(auth.painelAberto()).toBe(true);
     httpMock.expectNone('https://api.test/api/favoritos');
+  });
+
+  it('busca inicial por coordenadas resolve o clima e atualiza a cidade para a previsão, sem refazer a busca por nome', async () => {
+    const fixture = TestBed.createComponent(WeatherSearch);
+    fixture.detectChanges();
+
+    const cidadePesquisada = TestBed.inject(CidadePesquisada);
+    (navigator as unknown as { geolocation: Partial<Geolocation> }).geolocation = {
+      getCurrentPosition: (sucesso) =>
+        sucesso({
+          coords: { latitude: -25.43, longitude: -49.27 },
+        } as GeolocationPosition),
+    };
+    cidadePesquisada.iniciarComLocalizacaoOuPadrao();
+    fixture.detectChanges();
+
+    const req = httpMock.expectOne(
+      'https://api.test/api/clima/coordenadas?lat=-25.43&lon=-49.27',
+    );
+    const climaMock: ClimaAtual = {
+      cidade: 'Curitiba',
+      paisCodigo: 'BR',
+      temperatura: 21.6,
+      sensacaoTermica: 21.6,
+      temperaturaMaxima: 21.64,
+      temperaturaMinima: 11.02,
+      umidade: 55,
+      condicao: 'nublado',
+      icone: '04d',
+      iconeUrl: 'https://openweathermap.org/img/wn/04d@2x.png',
+      latitude: -25.43,
+      longitude: -49.27,
+      dataHoraLocal: '2026-07-30T09:45:55-03:00',
+      fonteMaxMin: 'previsao',
+    };
+    req.flush(climaMock);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Curitiba, BR');
+    expect(cidadePesquisada.cidadeAtual()).toBe('Curitiba,BR');
+
+    httpMock.expectNone('https://api.test/api/clima/Curitiba%2CBR');
   });
 });

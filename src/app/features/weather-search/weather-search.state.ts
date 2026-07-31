@@ -1,14 +1,16 @@
 import { Service, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, of, switchMap, tap } from 'rxjs';
+import { catchError, filter, map, merge, of, switchMap, tap } from 'rxjs';
 
 import { API_BASE_URL } from '../../core/config/api-config';
 import { apiEndpoints } from '../../core/config/api-endpoints';
-import { CidadePesquisada } from '../../shared/state/cidade-pesquisada';
+import { CidadePesquisada, type Coordenadas } from '../../shared/state/cidade-pesquisada';
 import { NotificationsState } from '../../shared/state/notifications';
 import { extrairMensagemDeErro } from '../../shared/utils/http-error.util';
 import type { ClimaAtual } from '../../shared/models/clima.model';
+
+type FonteBusca = { tipo: 'cidade'; cidade: string } | ({ tipo: 'coordenadas' } & Coordenadas);
 
 @Service()
 export class WeatherSearchState {
@@ -21,6 +23,13 @@ export class WeatherSearchState {
   private readonly climaCarregando = signal(false);
   private readonly climaErro = signal<unknown>(undefined);
 
+  /**
+   * Evita refazer a busca por nome quando ela só existe para alimentar a
+   * previsão (sem endpoint por coordenadas) logo após o clima atual já ter
+   * sido resolvido por localização.
+   */
+  private ignorarProximaBuscaPorNome = false;
+
   readonly clima = {
     value: this.climaValue.asReadonly(),
     isLoading: this.climaCarregando.asReadonly(),
@@ -28,37 +37,62 @@ export class WeatherSearchState {
   };
 
   constructor() {
-    toObservable(this.cidadePesquisada.cidadeAtual)
+    const cidade$ = toObservable(this.cidadePesquisada.cidadeAtual).pipe(
+      map((cidade): FonteBusca => ({ tipo: 'cidade', cidade })),
+    );
+    const coordenadas$ = toObservable(this.cidadePesquisada.coordenadasAtuais).pipe(
+      filter((coordenadas): coordenadas is Coordenadas => !!coordenadas),
+      map((coordenadas): FonteBusca => ({ tipo: 'coordenadas', ...coordenadas })),
+    );
+
+    merge(cidade$, coordenadas$)
       .pipe(
-        switchMap((cidade) => {
-          const cidadeTrim = cidade.trim();
-          if (!cidadeTrim) {
-            this.climaValue.set(undefined);
-            this.climaErro.set(undefined);
-            this.climaCarregando.set(false);
-            return of(undefined);
+        switchMap((fonte) => {
+          if (fonte.tipo === 'cidade') {
+            const cidadeTrim = fonte.cidade.trim();
+            if (!cidadeTrim) {
+              this.climaValue.set(undefined);
+              this.climaErro.set(undefined);
+              this.climaCarregando.set(false);
+              return of(undefined);
+            }
+            if (this.ignorarProximaBuscaPorNome) {
+              this.ignorarProximaBuscaPorNome = false;
+              return of(undefined);
+            }
+
+            const url = `${this.baseUrl}${apiEndpoints.climaAtual(cidadeTrim)}`;
+            return this.buscar(url);
           }
 
-          this.climaCarregando.set(true);
-          this.climaErro.set(undefined);
-
-          const url = `${this.baseUrl}${apiEndpoints.climaAtual(cidadeTrim)}`;
-          return this.http.get<ClimaAtual>(url).pipe(
-            tap((clima) => {
-              this.climaValue.set(clima);
-              this.climaCarregando.set(false);
-            }),
-            catchError((erro: HttpErrorResponse) => {
-              this.climaValue.set(undefined);
-              this.climaErro.set(erro);
-              this.climaCarregando.set(false);
-              this.notifications.notificarErro(extrairMensagemDeErro(erro));
-              return of(undefined);
-            }),
-          );
+          const url = `${this.baseUrl}${apiEndpoints.climaAtualPorCoordenadas(fonte.latitude, fonte.longitude)}`;
+          return this.buscar(url, (clima) => {
+            this.ignorarProximaBuscaPorNome = true;
+            this.cidadePesquisada.definirCidadeResolvida(clima.cidade, clima.paisCodigo);
+          });
         }),
         takeUntilDestroyed(),
       )
       .subscribe();
+  }
+
+  private buscar(url: string, aoSucesso?: (clima: ClimaAtual) => void) {
+    this.climaCarregando.set(true);
+    this.climaErro.set(undefined);
+
+    return this.http.get<ClimaAtual>(url).pipe(
+      tap((clima) => {
+        this.climaValue.set(clima);
+        this.climaCarregando.set(false);
+        aoSucesso?.(clima);
+      }),
+      catchError((erro: HttpErrorResponse) => {
+        this.climaValue.set(undefined);
+        this.climaErro.set(erro);
+        this.climaCarregando.set(false);
+        this.notifications.notificarErro(extrairMensagemDeErro(erro));
+        return of(undefined);
+      }),
+    );
   }
 }

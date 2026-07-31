@@ -4,6 +4,8 @@
  */
 export const apiEndpoints = {
   climaAtual: (cidade: string) => `/clima/${encodeURIComponent(cidade)}`,
+  climaAtualPorCoordenadas: (latitude: number, longitude: number) =>
+    `/clima/coordenadas?lat=${latitude}&lon=${longitude}`,
   previsao: (cidade: string) => `/clima/${encodeURIComponent(cidade)}/previsao`,
   favoritos: '/favoritos',
   favorito: (id: string) => `/favoritos/${encodeURIComponent(id)}`,
