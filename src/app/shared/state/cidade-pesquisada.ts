@@ -70,17 +70,6 @@ export class CidadePesquisada {
     );
   }
 
-  /**
-   * Chamado após o clima atual ser resolvido por coordenadas, para que a busca
-   * por nome (usada pela previsão de 5 dias, que não tem endpoint por
-   * coordenadas) acompanhe o mesmo local.
-   */
-  definirCidadeResolvida(cidade: string, paisCodigo: string): void {
-    const valor = paisCodigo ? `${cidade},${paisCodigo}` : cidade;
-    this.termo.set(valor);
-    this.cidade.set(valor);
-  }
-
   private buscarCidadePadrao(): void {
     this.termo.set(CIDADE_PADRAO);
     this.buscarAgora();

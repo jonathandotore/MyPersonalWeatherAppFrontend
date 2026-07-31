@@ -23,13 +23,6 @@ export class WeatherSearchState {
   private readonly climaCarregando = signal(false);
   private readonly climaErro = signal<unknown>(undefined);
 
-  /**
-   * Evita refazer a busca por nome quando ela só existe para alimentar a
-   * previsão (sem endpoint por coordenadas) logo após o clima atual já ter
-   * sido resolvido por localização.
-   */
-  private ignorarProximaBuscaPorNome = false;
-
   readonly clima = {
     value: this.climaValue.asReadonly(),
     isLoading: this.climaCarregando.asReadonly(),
@@ -56,27 +49,20 @@ export class WeatherSearchState {
               this.climaCarregando.set(false);
               return of(undefined);
             }
-            if (this.ignorarProximaBuscaPorNome) {
-              this.ignorarProximaBuscaPorNome = false;
-              return of(undefined);
-            }
 
             const url = `${this.baseUrl}${apiEndpoints.climaAtual(cidadeTrim)}`;
             return this.buscar(url);
           }
 
           const url = `${this.baseUrl}${apiEndpoints.climaAtualPorCoordenadas(fonte.latitude, fonte.longitude)}`;
-          return this.buscar(url, (clima) => {
-            this.ignorarProximaBuscaPorNome = true;
-            this.cidadePesquisada.definirCidadeResolvida(clima.cidade, clima.paisCodigo);
-          });
+          return this.buscar(url);
         }),
         takeUntilDestroyed(),
       )
       .subscribe();
   }
 
-  private buscar(url: string, aoSucesso?: (clima: ClimaAtual) => void) {
+  private buscar(url: string) {
     this.climaCarregando.set(true);
     this.climaErro.set(undefined);
 
@@ -84,7 +70,6 @@ export class WeatherSearchState {
       tap((clima) => {
         this.climaValue.set(clima);
         this.climaCarregando.set(false);
-        aoSucesso?.(clima);
       }),
       catchError((erro: HttpErrorResponse) => {
         this.climaValue.set(undefined);

@@ -148,7 +148,7 @@ describe('WeatherSearch', () => {
     httpMock.expectNone('https://api.test/api/favoritos');
   });
 
-  it('busca inicial por coordenadas resolve o clima e atualiza a cidade para a previsão, sem refazer a busca por nome', async () => {
+  it('busca inicial por coordenadas resolve o clima direto, sem busca por nome', async () => {
     const fixture = TestBed.createComponent(WeatherSearch);
     fixture.detectChanges();
 
@@ -163,7 +163,7 @@ describe('WeatherSearch', () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(
-      'https://api.test/api/clima/coordenadas?lat=-25.43&lon=-49.27',
+      'https://api.test/api/clima/coordenadas?latitude=-25.43&longitude=-49.27',
     );
     const climaMock: ClimaAtual = {
       cidade: 'Curitiba',
@@ -187,8 +187,8 @@ describe('WeatherSearch', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Curitiba, BR');
-    expect(cidadePesquisada.cidadeAtual()).toBe('Curitiba,BR');
+    expect(cidadePesquisada.cidadeAtual()).toBe('');
 
-    httpMock.expectNone('https://api.test/api/clima/Curitiba%2CBR');
+    httpMock.expectNone((r) => r.url.startsWith('https://api.test/api/clima/') && !r.url.includes('coordenadas'));
   });
 });

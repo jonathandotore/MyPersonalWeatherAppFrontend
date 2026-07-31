@@ -50,13 +50,4 @@ describe('CidadePesquisada', () => {
     expect(cidadePesquisada.coordenadasAtuais()).toEqual({ latitude: -25.43, longitude: -49.27 });
     expect(cidadePesquisada.cidadeAtual()).toBe('');
   });
-
-  it('definirCidadeResolvida atualiza termo e cidadeAtual com o nome resolvido', () => {
-    const cidadePesquisada = TestBed.inject(CidadePesquisada);
-
-    cidadePesquisada.definirCidadeResolvida('Curitiba', 'BR');
-
-    expect(cidadePesquisada.termo()).toBe('Curitiba,BR');
-    expect(cidadePesquisada.cidadeAtual()).toBe('Curitiba,BR');
-  });
 });

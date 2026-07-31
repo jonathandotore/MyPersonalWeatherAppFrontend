@@ -9,8 +9,11 @@ import type { PrevisaoResposta } from '../../shared/models/previsao.model';
 
 describe('ForecastList', () => {
   let httpMock: HttpTestingController;
+  let geolocationOriginal: Geolocation | undefined;
 
   beforeEach(async () => {
+    geolocationOriginal = (navigator as unknown as { geolocation?: Geolocation }).geolocation;
+
     await TestBed.configureTestingModule({
       imports: [ForecastList],
       providers: [
@@ -22,7 +25,10 @@ describe('ForecastList', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+    (navigator as unknown as { geolocation?: Geolocation }).geolocation = geolocationOriginal;
+  });
 
   it('não renderiza nada antes de uma cidade ser pesquisada', () => {
     const fixture = TestBed.createComponent(ForecastList);
@@ -60,5 +66,44 @@ describe('ForecastList', () => {
 
     const cards = fixture.nativeElement.querySelectorAll('app-forecast-card');
     expect(cards.length).toBe(5);
+  });
+
+  it('busca a previsão diretamente por coordenadas na busca inicial por localização', async () => {
+    const fixture = TestBed.createComponent(ForecastList);
+    fixture.detectChanges();
+
+    const cidadePesquisada = TestBed.inject(CidadePesquisada);
+    (navigator as unknown as { geolocation: Partial<Geolocation> }).geolocation = {
+      getCurrentPosition: (sucesso) =>
+        sucesso({
+          coords: { latitude: -25.43, longitude: -49.27 },
+        } as GeolocationPosition),
+    };
+    cidadePesquisada.iniciarComLocalizacaoOuPadrao();
+    fixture.detectChanges();
+
+    const req = httpMock.expectOne(
+      'https://api.test/api/clima/coordenadas/previsao?latitude=-25.43&longitude=-49.27',
+    );
+    const mock: PrevisaoResposta = {
+      cidade: 'Curitiba',
+      paisCodigo: 'BR',
+      dias: Array.from({ length: 5 }, (_, i) => ({
+        data: `2026-08-0${i + 1}`,
+        temperaturaMaxima: 22 + i,
+        temperaturaMinima: 12 + i,
+        condicao: 'nublado',
+        icone: '04d',
+        iconeUrl: 'https://openweathermap.org/img/wn/04d@2x.png',
+        probabilidadeChuva: 20,
+      })),
+    };
+    req.flush(mock);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const cards = fixture.nativeElement.querySelectorAll('app-forecast-card');
+    expect(cards.length).toBe(5);
+    httpMock.expectNone((r) => r.url.includes('/previsao') && !r.url.includes('coordenadas'));
   });
 });

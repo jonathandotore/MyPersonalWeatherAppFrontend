@@ -5,8 +5,10 @@
 export const apiEndpoints = {
   climaAtual: (cidade: string) => `/clima/${encodeURIComponent(cidade)}`,
   climaAtualPorCoordenadas: (latitude: number, longitude: number) =>
-    `/clima/coordenadas?lat=${latitude}&lon=${longitude}`,
+    `/clima/coordenadas?latitude=${latitude}&longitude=${longitude}`,
   previsao: (cidade: string) => `/clima/${encodeURIComponent(cidade)}/previsao`,
+  previsaoPorCoordenadas: (latitude: number, longitude: number) =>
+    `/clima/coordenadas/previsao?latitude=${latitude}&longitude=${longitude}`,
   favoritos: '/favoritos',
   favorito: (id: string) => `/favoritos/${encodeURIComponent(id)}`,
   login: '/auth/login',
