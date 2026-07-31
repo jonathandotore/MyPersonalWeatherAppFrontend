@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
 import { AuthState } from './shared/state/auth';
+import { CidadePesquisada } from './shared/state/cidade-pesquisada';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -40,5 +41,16 @@ describe('App', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-auth-panel')).toBeTruthy();
+  });
+
+  it('busca a cidade padrão ao iniciar quando não há geolocalização (ambiente de teste)', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(TestBed.inject(CidadePesquisada).cidadeAtual()).toBe('Brasília');
+
+    const httpMock = TestBed.inject(HttpTestingController);
+    httpMock.expectOne((r) => r.url.endsWith('/clima/Bras%C3%ADlia')).flush({});
+    httpMock.expectOne((r) => r.url.endsWith('/clima/Bras%C3%ADlia/previsao')).flush({});
   });
 });
